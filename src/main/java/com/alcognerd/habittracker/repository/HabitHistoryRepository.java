@@ -12,9 +12,10 @@ import java.util.Optional;
 public interface HabitHistoryRepository extends JpaRepository<HabitHistory,Long> {
 
     @Query("""
-        SELECT h FROM HabitHistory h
-        WHERE h.habit.id = :habitId
-          AND DATE(h.createdAt) = CURRENT_DATE
-    """)
+    SELECT h FROM HabitHistory h
+    WHERE h.habit.habitId = :habitId
+      AND h.createdAt = CURRENT_DATE
+""")
     Optional<HabitHistory> findTodayHistoryByHabitId(@Param("habitId") Long habitId);
+
 }

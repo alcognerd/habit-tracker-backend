@@ -3,6 +3,9 @@ package com.alcognerd.habittracker.service;
 import com.alcognerd.habittracker.dto.HabitCreate;
 import com.alcognerd.habittracker.dto.HabitOut;
 import com.alcognerd.habittracker.enums.HabitStatus;
+import com.alcognerd.habittracker.exception.HabitHistoryNotFoundException;
+import com.alcognerd.habittracker.exception.HabitNotFoundException;
+import com.alcognerd.habittracker.exception.HabitStreakNotFoundException;
 import com.alcognerd.habittracker.model.*;
 import com.alcognerd.habittracker.repository.CategoryRepository;
 import com.alcognerd.habittracker.repository.HabitHistoryRepository;
@@ -96,35 +99,45 @@ public class HabitService {
         List<HabitOut> habitOuts = new ArrayList<>();
         for(Habit habit :habits){
             HabitStreak habitStreak = habitStreakRepository.findByHabitId(habit.getHabitId()).orElseThrow(()->new RuntimeException("Streak not found"));
-            HabitHistory habitHistory  = habitHistoryRepository.findTodayHistoryByHabitId(habit.getHabitId()).orElseThrow(()->new RuntimeException("Habit History for today is not found"));
+
             HabitOut habitOut = HabitOut.builder()
                     .id(habit.getHabitId())
                     .name(habit.getName())
                     .description((habit.getDescription()))
                     .frequency(habit.getFrequency())
                     .createdAt(habit.getCreatedAt().toLocalDate())
-                    .habitStatus(habitHistory.getStatus())
                     .category(habit.getCategory().getName())
                     .currentStreak(habitStreak.getCurrentStreak())
                     .lastCompletedAt(habitStreak.getLastCompletedDate())
                     .build();
+            System.out.println(habitOut.toString());
             habitOuts.add(habitOut);
         }
         return habitOuts;
     }
 
+    public HabitOut updateTodayHabitStatus(User user,HabitStatus status,Long habitId){
+        Habit habit = habitRepository.findByHabitIdAndEnabledTrue(habitId).orElseThrow(() -> new HabitNotFoundException(habitId));
 
-    public HabitOut updateTodayHabitStatus(User user,String status,Habit habit){
-        HabitStreak habitStreak = habitStreakRepository.findByHabitId(habit.getHabitId()).orElseThrow(()->new RuntimeException("No habit streak found for this habit id: " + habit.getHabitId()));
-        HabitHistory habitHistory = habitHistoryRepository.findTodayHistoryByHabitId(habit.getHabitId()).orElseThrow(()->new RuntimeException("Habit History not found for this habit today."));
-        habitHistory.setStatus(HabitStatus.valueOf(status));
+        // streak must exist
+        HabitStreak habitStreak = habitStreakRepository.findByHabitId(habit.getHabitId()).orElseThrow(() -> new HabitStreakNotFoundException(habit.getHabitId()));
+
+        // today's history must exist
+
+
+        HabitHistory habitHistory = habitHistoryRepository.findTodayHistoryByHabitId(habit.getHabitId()).orElseThrow(() -> new HabitHistoryNotFoundException(habit.getHabitId()));
         habitHistoryRepository.save(habitHistory);
-        if(status.equals(HabitStatus.COMPLETED.name())){
-            if(habitStreak.getLastCompletedDate().equals(LocalDate.now().minusDays(1))){
-                habitStreak.setLastCompletedDate(LocalDate.now());
-                habitStreak.setCurrentStreak(habitStreak.getCurrentStreak()+1);
-                habitStreak.setLongestStreak(habitStreak.getCurrentStreak()>habitStreak.getLongestStreak()?habitStreak.getCurrentStreak():habitStreak.getLongestStreak());
+        if(status.equals(HabitStatus.COMPLETED)){
+            if (habitStreak.getLastCompletedDate() != null &&
+                    habitStreak.getLastCompletedDate().equals(LocalDate.now().minusDays(1))) {
+                habitStreak.setCurrentStreak(habitStreak.getCurrentStreak() + 1);
+                habitStreak.setLongestStreak(
+                        Math.max(habitStreak.getCurrentStreak(), habitStreak.getLongestStreak())
+                );
+            } else {
+                habitStreak.setCurrentStreak(1); // first completion in a new streak
             }
+            habitStreak.setLastCompletedDate(LocalDate.now());
 
         }else {
             habitStreak.setCurrentStreak(0);
@@ -168,6 +181,12 @@ public class HabitService {
                             .build();
                 }).toList();
         return habitOuts;
+    }
+
+    public void disableHabit(Long habitId,Long userId){
+            Habit habit = habitRepository.findByHabitIdAndUserId(habitId,userId).orElseThrow(()->new HabitNotFoundException(habitId));
+        habit.setEnabled(false);
+        habitRepository.save(habit);
     }
 }
 
