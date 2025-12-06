@@ -14,15 +14,12 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor
 public class HabitHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "habit_history_id")
     private Long habitHistoryId;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id",referencedColumnName = "id")
     private Long userId;
 
     private LocalDate createdAt = LocalDate.now();
