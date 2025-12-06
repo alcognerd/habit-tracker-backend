@@ -25,20 +25,20 @@ public class HabitHistoryService {
     }
 
 
-    public Optional<Map<String, Long>> getCompletedCounts(String year) {
+    public Optional<Map<String, Long>> getCompletedCounts(String year, Long userId) {
 
         if (year.equalsIgnoreCase("current")) {
             LocalDate today = LocalDate.now();
             LocalDate from = today.minusDays(365);
 
-            List<Object[]> rows = repo.getCompletedInRange(from, today);
+            List<Object[]> rows = repo.getCompletedInRange(from, today,userId);
             Map<String, Long> data = convert(rows);
 
             return data.isEmpty() ? Optional.empty() : Optional.of(data);
         }
 
         int y = Integer.parseInt(year);
-        List<Object[]> rows = repo.getCompletedByYear(y);
+        List<Object[]> rows = repo.getCompletedByYear(y,userId);
         Map<String, Long> data = convert(rows);
         return data.isEmpty() ? Optional.empty() : Optional.of(data);
     }
