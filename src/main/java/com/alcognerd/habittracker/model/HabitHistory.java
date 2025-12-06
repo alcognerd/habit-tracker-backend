@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
 
@@ -13,11 +14,16 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@RequiredArgsConstructor
 public class HabitHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "habit_history_id")
     private Long habitHistoryId;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id",referencedColumnName = "id")
+    private Long userId;
 
     private LocalDate createdAt = LocalDate.now();
 
@@ -31,4 +37,9 @@ public class HabitHistory {
     @ManyToOne
     @JoinColumn(name = "habit_id", referencedColumnName = "habit_id", nullable = false)
     private Habit habit;
+
+    public HabitHistory(Habit habit, Long userId) {
+        this.habit = habit;
+        this.userId = userId;
+    }
 }

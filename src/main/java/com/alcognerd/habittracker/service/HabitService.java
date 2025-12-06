@@ -79,7 +79,7 @@ public class HabitService {
         // Create HabitHistory for today only if habit is active today
         LocalDate today = LocalDate.now();
         if (savedHabit.isActiveOn(today)) {
-            HabitHistory habitHistory = new HabitHistory(savedHabit);
+            HabitHistory habitHistory = new HabitHistory(savedHabit, user.getId());
             habitHistoryRepository.save(habitHistory);
         }
 
@@ -278,6 +278,7 @@ public class HabitService {
                     history.setHabit(habit);
                     history.setCreatedAt(cursor);
                     history.setStatus(HabitStatus.MISSED);
+                    history.setUserId(habit.getUser().getId());
                     toSave.add(history);
                 }
             }
@@ -306,6 +307,7 @@ public class HabitService {
                 history.setHabit(habit);
                 history.setCreatedAt(today);
                 history.setStatus(HabitStatus.PENDING);
+                history.setUserId(habit.getUser().getId());
                 toSave.add(history);
             }
         }
