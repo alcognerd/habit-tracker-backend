@@ -26,12 +26,13 @@ public interface HabitHistoryRepository extends JpaRepository<HabitHistory,Long>
         FROM habit_history
         WHERE status = 'COMPLETED'
           AND created_at BETWEEN :from AND :to
+          AND user_id = :userId
         GROUP BY day
         ORDER BY day
         """,
             nativeQuery = true
     )
-    List<Object[]> getCompletedInRange(@Param("from") LocalDate from, @Param("to") LocalDate to);
+    List<Object[]> getCompletedInRange(@Param("from") LocalDate from, @Param("to") LocalDate to,@Param("userId") Long userId);
 
 
     @Query(
@@ -41,12 +42,17 @@ public interface HabitHistoryRepository extends JpaRepository<HabitHistory,Long>
         FROM habit_history
         WHERE status = 'COMPLETED'
           AND EXTRACT(YEAR FROM created_at) = :year
+          AND user_id = :userId
         GROUP BY day
         ORDER BY day
         """,
             nativeQuery = true
     )
-    List<Object[]> getCompletedByYear(@Param("year") int year);
+    List<Object[]> getCompletedByYear(
+            @Param("year") int year,
+            @Param("userId") Long userId
+    );
+
 
     // Find today's history for a habit
     Optional<HabitHistory> findByHabit_HabitIdAndCreatedAt(Long habitId, LocalDate date);
