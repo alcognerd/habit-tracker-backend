@@ -34,6 +34,12 @@ public class JwtFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         Cookie[] cookies = request.getCookies();
+        String path = request.getRequestURI();
+        if ("/api/notification-data".equals(path) ||"/api/ping".equals(path)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
 
         if (cookies == null || cookies.length == 0) {
             writeErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Authentication cookie is missing");

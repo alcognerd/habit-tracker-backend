@@ -1,6 +1,7 @@
 package com.alcognerd.habittracker.repository;
 
 import com.alcognerd.habittracker.model.HabitHistory;
+import jakarta.persistence.criteria.From;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -59,5 +60,16 @@ public interface HabitHistoryRepository extends JpaRepository<HabitHistory,Long>
 
     // Find the latest history date for a habit
     @Query("SELECT MAX(h.createdAt) FROM HabitHistory h WHERE h.habit.habitId = :habitId")
-    LocalDate findLastHistoryDateForHabit(@Param("habitId") Long habitId);
+    LocalDate findLastHistoryDateForHabit(@Param("habitI d") Long habitId);
+    @Query(value = """ 
+    SELECT status, COUNT(*)
+    FROM habit_history
+    WHERE user_id = :userId
+    AND created_at = :createdAt
+    GROUP BY status""",
+    nativeQuery = true)
+    List<Object[]> countTodayByStatus(@Param("userId") Long userId,
+                                      @Param("createdAt") LocalDate createdAt);
+
+
 }
