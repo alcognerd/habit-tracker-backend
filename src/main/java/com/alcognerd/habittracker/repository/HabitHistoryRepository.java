@@ -60,7 +60,7 @@ public interface HabitHistoryRepository extends JpaRepository<HabitHistory,Long>
 
     // Find the latest history date for a habit
     @Query("SELECT MAX(h.createdAt) FROM HabitHistory h WHERE h.habit.habitId = :habitId")
-    LocalDate findLastHistoryDateForHabit(@Param("habitI d") Long habitId);
+    LocalDate findLastHistoryDateForHabit(@Param("habitId") Long habitId);
     @Query(value = """ 
     SELECT status, COUNT(*)
     FROM habit_history
